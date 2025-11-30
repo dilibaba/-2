@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaiP智能聊天室</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: #f5f7fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header .username {
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .container {
+            flex: 1;
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .chat-section {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            background: #fafafa;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .message-wrapper {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message-wrapper .sender {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            padding: 0 10px;
+        }
+        
+        .message {
+            max-width: 75%;
+            padding: 12px 15px;
+            border-radius: 18px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            align-self: flex-start;
+        }
+        
+        .message .content {
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+        
+        /* 当前用户的消息靠右显示 */
+        .message-wrapper.own {
+            align-items: flex-end;
+        }
+        
+        .message-wrapper.own .message {
+            background: #667eea;
+            color: white;
+            align-self: flex-end;
+        }
+        
+        .message-wrapper.own .sender {
+            text-align: right;
+        }
+        
+        /* @用户名高亮样式 */
+        .message .content .mention {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        /* 在自己的消息中，@用户名使用白色高亮 */
+        .message-wrapper.own .message .content .mention {
+            color: #ffffff;
+        }
+        
+        .system-message {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            padding: 8px 12px;
+            border-radius: 18px;
+            text-align: center;
+            margin: 10px auto;
+            font-size: 0.9rem;
+            border: 1px solid #e9ecef;
+            display: inline-block;
+            max-width: 90%;
+        }
+        
+        .input-section {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e5e9;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        #message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: none;
+            max-height: 120px;
+            min-height: 44px;
+            transition: border-color 0.3s ease;
+        }
+        
+        #message-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Emoji选择器样式 */
+        .emoji-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .emoji-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+            margin-right: 5px;
+        }
+
+        .emoji-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .emoji-dropdown {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            margin-bottom: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        .emoji-dropdown.show {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+        }
+
+        .emoji-item {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .emoji-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .users-section {
+            flex: 1;
+            max-width: 300px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        
+        .users-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e1e5e9;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .users-list {
+            padding: 15px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: background 0.3s ease;
+        }
+        
+        .user-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+        
+        .user-name {
+            font-weight: 500;
+        }
+        
+        .movie-container {
+            margin-top: 10px;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+        
+        .movie-container h4 {
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .movie-container iframe {
+            border: none;
+        }
+        
+        .tips {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .tips.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .users-section {
+                max-width: 100%;
+                max-height: 200px;
+                order: -1;
+            }
+            
+            .users-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                max-height: none;
+            }
+            
+            .user-item {
+                flex-direction: column;
+                padding: 8px;
+                text-align: center;
+                min-width: 80px;
+                margin-bottom: 0;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+            
+            .chat-messages {
+                padding: 15px;
+            }
+            
+            .input-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>DaiP智能聊天室</h1>
+        <div class="user-info">
+            <span class="username">欢迎，{{ username }}</span>
+            <button class="logout-btn" id="logout-btn">退出</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="chat-section">
+            <div class="chat-messages" id="chat-messages">
+                <!-- 消息将在这里动态显示 -->
+            </div>
+            
+            <div class="input-section">
+                <div class="input-container" style="display: flex; align-items: flex-end;">
+                    <div class="emoji-container">
+                        <button class="emoji-btn" id="emoji-btn">😀</button>
+                        <div class="emoji-dropdown" id="emoji-dropdown">
+                            <!-- Emoji将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    <textarea id="message-input" placeholder="输入消息...\n\n支持功能：\n1. 发送普通文本消息\n2. @电影 URL - 解析并播放电影\n3. @川小农 - 与AI对话（开发中）\n4. @用户名 - 提醒特定用户\n5. 😀 - 发送emoji表情"></textarea>
+                    <button class="send-btn" id="send-btn">发送</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="users-section">
+            <div class="users-header">
+                在线用户 (0)
+            </div>
+            <div class="users-list" id="users-list">
+                <!-- 在线用户列表将在这里动态显示 -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="tips" id="tips">
+        正在连接服务器...
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        // 获取URL参数
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        const username = getQueryParam('username');
+        const server = getQueryParam('server') || window.location.origin;
+        
+        // 连接WebSocket
+        let socket = null;
+        
+        function connectSocket() {
+            showTips('正在连接服务器...');
+            
+            // 确定WebSocket URL
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}`;
+            
+            socket = io(wsUrl, {
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
+            });
+            
+            socket.on('connect', () => {
+                console.log('已连接到服务器');
+                showTips('已连接到服务器');
+                
+                // 加入聊天室
+                socket.emit('join', { username: username });
+            });
+            
+            socket.on('join_error', (data) => {
+                showTips(data.message, true);
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            });
+            
+            socket.on('welcome', (data) => {
+                addSystemMessage(data.message);
+                updateUsersList(data.online_users);
+            });
+            
+            socket.on('user_left', (data) => {
+                addSystemMessage(data.message);
+                updateUsersList(data.online_users);
+            });
+            
+            socket.on('new_message', (data) => {
+                addMessage(data.username, data.message, data.is_movie);
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('与服务器断开连接');
+                showTips('与服务器断开连接');
+            });
+            
+            socket.on('connect_error', (error) => {
+                console.error('连接错误:', error);
+                showTips('连接服务器失败，请刷新页面重试', true);
+            });
+        }
+        
+        // 添加系统消息
+        function addSystemMessage(message) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'system-message';
+            msgDiv.textContent = message;
+            messagesDiv.appendChild(msgDiv);
+            scrollToBottom();
+        }
+        
+        // 添加聊天消息
+        function addMessage(sender, content, isMovie) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'message-wrapper';
+            
+            // 如果是当前用户的消息，添加own类
+            if (sender === username) {
+                wrapperDiv.classList.add('own');
+            }
+            
+            const senderDiv = document.createElement('div');
+            senderDiv.className = 'sender';
+            senderDiv.textContent = sender;
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'content';
+            
+            if (isMovie) {
+                // 电影消息包含iframe，使用innerHTML
+                contentDiv.innerHTML = content;
+            } else {
+                // 普通消息，转义HTML防止XSS
+                const escapedContent = content
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+                
+                // 高亮@用户名
+                // 使用CSS类而不是内联样式，便于在不同背景下正确显示
+                const highlightedText = escapedContent.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="mention">@$1</span>');
+                contentDiv.innerHTML = highlightedText;
+            }
+            
+            msgDiv.appendChild(contentDiv);
+            wrapperDiv.appendChild(senderDiv);
+            wrapperDiv.appendChild(msgDiv);
+            messagesDiv.appendChild(wrapperDiv);
+            scrollToBottom();
+        }
+        
+        // 更新用户列表
+        function updateUsersList(users) {
+            const usersList = document.getElementById('users-list');
+            const usersHeader = document.querySelector('.users-header');
+            
+            usersHeader.textContent = `在线用户 (${users.length})`;
+            
+            usersList.innerHTML = '';
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'user-avatar';
+                avatar.textContent = user.charAt(0).toUpperCase();
+                
+                const userName = document.createElement('div');
+                userName.className = 'user-name';
+                userName.textContent = user;
+                
+                userItem.appendChild(avatar);
+                userItem.appendChild(userName);
+                usersList.appendChild(userItem);
+            });
+        }
+        
+        // 发送消息
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // 清空输入框
+            messageInput.value = '';
+            
+            // 发送消息到服务器
+            socket.emit('send_message', { username: username, message: message });
+        }
+        
+        // 滚动到底部
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById('chat-messages');
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // 显示提示
+        function showTips(message, isError = false) {
+            const tips = document.getElementById('tips');
+            tips.textContent = message;
+            tips.className = `tips show ${isError ? 'error' : ''}`;
+            
+            setTimeout(() => {
+                tips.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 自动调整文本框高度
+        function adjustTextareaHeight() {
+            const textarea = document.getElementById('message-input');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+        
+        // 事件监听
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+        
+        document.getElementById('message-input').addEventListener('keydown', function(e) {
+            // Ctrl+Enter 或 Shift+Enter 换行
+            if ((e.ctrlKey || e.shiftKey) && e.key === 'Enter') {
+                return;
+            }
+            // Enter 发送消息
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        document.getElementById('message-input').addEventListener('input', adjustTextareaHeight);
+
+        // Emoji选择器功能
+        const emojiBtn = document.getElementById('emoji-btn');
+        const emojiDropdown = document.getElementById('emoji-dropdown');
+        const messageInput = document.getElementById('message-input');
+
+        // 常用emoji集合
+        const emojis = [
+            '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣',
+            '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰',
+            '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜',
+            '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
+            '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+            '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠',
+            '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨',
+            '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥',
+            '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧',
+            '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐',
+            '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑',
+            '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻',
+            '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸',
+            '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '👋',
+            '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞',
+            '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇'
+        ];
+
+        // 动态生成emoji列表
+        function generateEmojiList() {
+            emojiDropdown.innerHTML = '';
+            emojis.forEach(emoji => {
+                const emojiItem = document.createElement('div');
+                emojiItem.className = 'emoji-item';
+                emojiItem.textContent = emoji;
+                emojiItem.addEventListener('click', () => {
+                    insertEmoji(emoji);
+                    emojiDropdown.classList.remove('show');
+                });
+                emojiDropdown.appendChild(emojiItem);
+            });
+        }
+
+        // 插入emoji到输入框
+        function insertEmoji(emoji) {
+            const textarea = messageInput;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const value = textarea.value;
+            
+            textarea.value = value.substring(0, start) + emoji + value.substring(end);
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+            adjustTextareaHeight();
+        }
+
+        // 切换emoji下拉框显示
+        emojiBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiDropdown.classList.toggle('show');
+        });
+
+        // 点击其他地方关闭emoji下拉框
+        document.addEventListener('click', () => {
+            emojiDropdown.classList.remove('show');
+        });
+
+        // 防止点击emoji下拉框时关闭
+        emojiDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // 初始化生成emoji列表
+        generateEmojiList();
+        
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            if (socket) {
+                socket.disconnect();
+            }
+            window.location.href = '/';
+        });
+        
+        // 初始化连接
+        connectSocket();
+        
+        // 窗口关闭前断开连接
+        window.addEventListener('beforeunload', function() {
+            if (socket) {
+                socket.disconnect();
+            }
+        });
+    </script>
+</body>
+</html>

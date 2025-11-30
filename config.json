@@ -1,0 +1,16 @@
+{
+  "server_addresses": [
+    {
+      "name": "本地服务器",
+      "url": "http://localhost:5001"
+    },
+    {
+      "name": "备用服务器1",
+      "url": "http://localhost:5001"
+    },
+    {
+      "name": "备用服务器2",
+      "url": "http://localhost:5001"
+    }
+  ]
+}
